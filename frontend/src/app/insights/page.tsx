@@ -23,14 +23,14 @@ const pipelineSteps = [
     color: "from-green-500 to-green-600",
   },
   {
-    title: "SVM Classification",
-    description: "Apply trained SVM model for prediction",
+    title: "Model Selection",
+    description: "Choose best classifier via macro F1 (LR vs SVM vs NB)",
     icon: "🧠",
     color: "from-orange-500 to-orange-600",
   },
   {
     title: "Output Result",
-    description: "Return sentiment and confidence score",
+    description: "Return sentiment, confidence, probability map and keywords",
     icon: "📈",
     color: "from-red-500 to-red-600",
   },
@@ -101,7 +101,7 @@ export default function Insights() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
               >
-                Understand how our SVM model processes and analyzes sentiment
+                Understand how the full AI pipeline transforms noisy social text into actionable insights
               </motion.p>
             </div>
 

@@ -103,8 +103,8 @@ export default function Home() {
                   variants={itemVariants}
                   className="text-xl text-gray-300 leading-relaxed"
                 >
-                  Harness the power of SVM machine learning to analyze social media comments
-                  in real-time. Understand public opinion with unparalleled accuracy.
+                  Harness model selection, transformer intelligence, emotion detection, toxicity checks,
+                  and trend analytics to decode social conversations in real-time.
                 </motion.p>
 
                 <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
@@ -113,9 +113,11 @@ export default function Home() {
                       Analyze a Comment
                     </Button>
                   </Link>
-                  <Button variant="secondary" className="text-lg px-8 py-4">
-                    Learn More
-                  </Button>
+                  <Link href="/batch">
+                    <Button variant="secondary" className="text-lg px-8 py-4">
+                      Batch Upload
+                    </Button>
+                  </Link>
                 </motion.div>
               </motion.div>
 
@@ -128,7 +130,7 @@ export default function Home() {
                 >
                   <h3 className="text-2xl font-semibold text-white mb-4">Real-time Analysis</h3>
                   <p className="text-gray-300 mb-4">
-                    "This product is amazing! Love the quality."
+                    &quot;This product is amazing! Love the quality.&quot;
                   </p>
                   <div className="flex items-center space-x-2">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
@@ -139,10 +141,9 @@ export default function Home() {
                 <motion.div
                   className="glass p-4 rounded-xl absolute -top-4 -right-4 glow"
                   whileHover={{ scale: 1.1, rotate: 10 }}
-                  transition={{ type: "spring", stiffness: 300 }}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 1 }}
+                  transition={{ delay: 1, type: "spring", stiffness: 300 }}
                 >
                   <div className="text-2xl">🚀</div>
                   <p className="text-sm text-gray-300">Fast & Accurate</p>
@@ -151,10 +152,9 @@ export default function Home() {
                 <motion.div
                   className="glass p-4 rounded-xl absolute -bottom-4 -left-4 glow"
                   whileHover={{ scale: 1.1, rotate: -10 }}
-                  transition={{ type: "spring", stiffness: 300 }}
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 1.2 }}
+                  transition={{ delay: 1.2, type: "spring", stiffness: 300 }}
                 >
                   <div className="text-2xl">📊</div>
                   <p className="text-sm text-gray-300">Data-Driven</p>
@@ -187,27 +187,26 @@ export default function Home() {
                 {
                   icon: "🧠",
                   title: "Advanced ML",
-                  desc: "Powered by SVM with TF-IDF for superior accuracy in sentiment detection.",
+                  desc: "Logistic Regression vs SVM vs Naive Bayes with automatic best-model selection by macro F1.",
                 },
                 {
                   icon: "⚡",
                   title: "Real-time",
-                  desc: "Instant analysis of comments with confidence scores and detailed insights.",
+                  desc: "Instant sentiment, probability distribution, keyword influence, and confidence meter.",
                 },
                 {
                   icon: "🔒",
-                  title: "Secure",
-                  desc: "Your data stays private. All processing happens locally or in secure environments.",
+                  title: "Intelligent Insights",
+                  desc: "Emotion breakdown, toxicity signals, batch analytics, and dashboard trend storytelling.",
                 },
               ].map((feature, index) => (
                 <motion.div
                   key={index}
                   className="glass p-8 rounded-2xl text-center glow"
                   whileHover={{ y: -10, scale: 1.05 }}
-                  transition={{ type: "spring", stiffness: 300 }}
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
+                  transition={{ delay: index * 0.1, type: "spring", stiffness: 300 }}
                   viewport={{ once: true }}
                 >
                   <div className="text-4xl mb-4">{feature.icon}</div>

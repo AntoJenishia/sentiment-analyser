@@ -1,22 +1,33 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import Button from "@/components/Button";
 import Input from "@/components/Input";
 import Loading from "@/components/Loading";
+import { predictComment } from "@/lib/api";
+import { ModelType, PredictionResult, SentimentLabel } from "@/types/analysis";
 
-interface Result {
-  sentiment: "positive" | "negative";
-  confidence: number;
-}
+const sentimentStyles: Record<SentimentLabel, string> = {
+  positive: "text-green-400",
+  negative: "text-red-400",
+  neutral: "text-yellow-300",
+};
+
+const sentimentEmoji: Record<SentimentLabel, string> = {
+  positive: "😊",
+  negative: "😡",
+  neutral: "😐",
+};
 
 export default function Analyzer() {
   const [text, setText] = useState("");
-  const [result, setResult] = useState<Result | null>(null);
+  const [modelType, setModelType] = useState<ModelType>("classical");
+  const [result, setResult] = useState<PredictionResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const wordCount = useMemo(() => text.trim().split(/\s+/).filter(Boolean).length, [text]);
 
   const analyzeSentiment = async () => {
     if (!text.trim()) return;
@@ -26,33 +37,13 @@ export default function Analyzer() {
     setResult(null);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/predict", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ text }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to analyze sentiment");
-      }
-
-      const data = await response.json();
+      const data = await predictComment(text, modelType);
       setResult(data);
-    } catch (err) {
-      setError("Failed to analyze. Please check if the backend is running.");
+    } catch {
+      setError("Failed to analyze. Make sure backend is running and model files are trained.");
     } finally {
       setLoading(false);
     }
-  };
-
-  const getSentimentColor = (sentiment: string) => {
-    return sentiment === "positive" ? "text-green-400" : "text-red-400";
-  };
-
-  const getSentimentEmoji = (sentiment: string) => {
-    return sentiment === "positive" ? "😊" : "😔";
   };
 
   return (
@@ -87,6 +78,9 @@ export default function Analyzer() {
             <Link href="/dashboard" className="text-gray-300 hover:text-white transition-colors">
               Dashboard
             </Link>
+            <Link href="/batch" className="text-gray-300 hover:text-white transition-colors">
+              Batch
+            </Link>
             <Link href="/insights" className="text-gray-300 hover:text-white transition-colors">
               Insights
             </Link>
@@ -119,7 +113,7 @@ export default function Analyzer() {
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4 }}
               >
-                Paste a social media comment below and get instant sentiment analysis
+                Real-time sentiment and emotion intelligence for social media comments
               </motion.p>
             </div>
 
@@ -137,6 +131,20 @@ export default function Analyzer() {
                 multiline
                 className="text-lg"
               />
+              <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-gray-300">
+                <span>Words: {wordCount}</span>
+                <div className="flex items-center gap-2">
+                  <span>Model:</span>
+                  <select
+                    className="bg-gray-800 border border-gray-700 rounded-md px-3 py-1"
+                    value={modelType}
+                    onChange={(e) => setModelType(e.target.value as ModelType)}
+                  >
+                    <option value="classical">Classical (best ML)</option>
+                    <option value="transformer">Transformer (HF)</option>
+                  </select>
+                </div>
+              </div>
 
               <div className="flex justify-center">
                 <Button
@@ -179,16 +187,16 @@ export default function Analyzer() {
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.2, type: "spring" }}
                   >
-                    {getSentimentEmoji(result.sentiment)}
+                    {sentimentEmoji[result.sentiment]}
                   </motion.div>
 
                   <motion.h3
-                    className={`text-3xl font-bold ${getSentimentColor(result.sentiment)}`}
+                    className={`text-3xl font-bold ${sentimentStyles[result.sentiment]}`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
                   >
-                    {result.sentiment.charAt(0).toUpperCase() + result.sentiment.slice(1)}
+                    {result.sentiment.charAt(0).toUpperCase() + result.sentiment.slice(1)} Sentiment
                   </motion.h3>
 
                   <motion.div
@@ -200,7 +208,7 @@ export default function Analyzer() {
                     <p className="text-gray-300">Confidence Score</p>
                     <div className="w-full bg-gray-700 rounded-full h-4 overflow-hidden">
                       <motion.div
-                        className={`h-full ${result.sentiment === "positive" ? "bg-green-500" : "bg-red-500"}`}
+                        className={`h-full ${result.sentiment === "positive" ? "bg-green-500" : result.sentiment === "negative" ? "bg-red-500" : "bg-yellow-400"}`}
                         initial={{ width: 0 }}
                         animate={{ width: `${result.confidence * 100}%` }}
                         transition={{ delay: 0.8, duration: 1 }}
@@ -211,6 +219,38 @@ export default function Analyzer() {
                     </p>
                   </motion.div>
 
+                  <div className="grid md:grid-cols-3 gap-3 text-left">
+                    {Object.entries(result.probabilities).map(([label, probability]) => (
+                      <div key={label} className="bg-black/20 border border-white/10 rounded-lg p-3">
+                        <p className="text-xs uppercase text-gray-400">{label}</p>
+                        <p className="text-lg font-semibold text-white">{(probability * 100).toFixed(1)}%</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="text-left space-y-2">
+                    <p className="text-sm text-gray-300">Emotion detection</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {Object.entries(result.emotions).map(([emotion, score]) => (
+                        <div key={emotion} className="bg-black/20 border border-white/10 rounded px-2 py-1 text-sm">
+                          <span className="text-gray-200">{emotion}</span>{" "}
+                          <span className="text-gray-400">{(score * 100).toFixed(0)}%</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="text-left space-y-2">
+                    <p className="text-sm text-gray-300">Influential keywords</p>
+                    <div className="flex flex-wrap gap-2">
+                      {result.influential_keywords.map((word) => (
+                        <span key={word} className="rounded-full border border-blue-400/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-200">
+                          {word}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
                   <motion.div
                     className="pt-4 border-t border-gray-600"
                     initial={{ opacity: 0 }}
@@ -218,7 +258,7 @@ export default function Analyzer() {
                     transition={{ delay: 1 }}
                   >
                     <p className="text-gray-400 text-sm">
-                      Analysis powered by SVM + TF-IDF
+                      Analysis powered by model comparison + TF-IDF (1,2)-gram + optional transformer
                     </p>
                   </motion.div>
                 </motion.div>
